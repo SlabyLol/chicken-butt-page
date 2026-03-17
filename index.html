@@ -15,7 +15,12 @@ body {
 h1,#money {margin:10px;}
 #money {font-size:24px;}
 #butt-container {position:relative; display:inline-block;}
-#butt {width:300px; cursor:pointer; display:block;}
+#butt {
+  width:300px;
+  cursor:pointer;
+  display:block;
+  transition: transform 0.2s;
+}
 .kaka {
   position:absolute;
   cursor:pointer;
@@ -65,6 +70,20 @@ h1,#money {margin:10px;}
   display:inline-block;
   background:#ffd700;
 }
+.gold-waterfall {
+  position:absolute;
+  width:100px;
+  height:300px;
+  background:gold;
+  left:100px;
+  top:0px;
+  animation:fall 31s linear forwards;
+  opacity:0.9;
+}
+@keyframes fall {
+  0% {top:0;}
+  100% {top:500px;}
+}
 </style>
 </head>
 <body>
@@ -84,8 +103,8 @@ h1,#money {margin:10px;}
   <div class="shop-item" id="gyat-auto">Gyat Auto-Kaka (+1 Kaka/sec)</div>
 </div>
 
-<audio id="explodeSound" src="https://freesound.org/data/previews/170/170163_2437358-lq.mp3"></audio>
-<audio id="goldSound" src="https://freesound.org/data/previews/82/82528_1022651-lq.mp3"></audio>
+<audio id="explodeSound" src="poop-sound-effect.mp3"></audio>
+<audio id="goldSound" src="pw-sound.mp3"></audio>
 
 <script>
 let money=0, chicks=0, clickPower=10, kakaMultiplier=1, autoKaka=0;
@@ -128,36 +147,31 @@ function explodeKaka(kaka,size){
   exp.style.left=kaka.style.left;
   exp.style.top=kaka.style.top;
   exp.style.setProperty('--exp-size',`${size*1.07}px`);
-  exp.style.setProperty('--explosion-x',`${Math.random()*50-25}px`);
-  exp.style.setProperty('--explosion-y',`${Math.random()*-50}px`);
   buttContainer.appendChild(exp);
   explodeSound.currentTime=0; explodeSound.play();
   setTimeout(()=>exp.remove(),500);
   kaka.remove();
 }
 
-// Klick auf Huhn
 butt.addEventListener('click',()=>{
   money+=clickPower;
   updateMoney();
+  butt.style.transform='rotate(-5deg)';
+  setTimeout(()=>{butt.style.transform='rotate(5deg)'},100);
+  setTimeout(()=>{butt.style.transform='rotate(0deg)'},200);
   if(Math.random()<0.5) spawnKaka();
-  if(Math.random()<0.01){ // Goldener Dünnschiss
+  if(Math.random()<0.1){ // 10% Chance Goldwasserfall
     const waterfall=document.createElement('div');
-    waterfall.className='explosion';
-    waterfall.style.width='100px'; waterfall.style.height='300px';
-    waterfall.style.left='100px'; waterfall.style.top='0px';
-    waterfall.style.background='gold';
+    waterfall.className='gold-waterfall';
     buttContainer.appendChild(waterfall);
     goldSound.currentTime=0; goldSound.play();
     money+=1000; updateMoney();
-    setTimeout(()=>waterfall.remove(),1000);
+    setTimeout(()=>waterfall.remove(),31000);
   }
 });
 
-// Shop toggle
 shopButton.addEventListener('click',()=>{shop.style.display=shop.style.display==='none'?'block':'none';});
 
-// Shop Items
 document.getElementById('buy-chick').addEventListener('click',()=>{
   if(money>=100){money-=100;chicks++;updateMoney();}
 });
@@ -173,14 +187,13 @@ document.getElementById('gyat-auto').addEventListener('click',()=>{
 
 // Küken automatisch Geld + Kaka
 setInterval(()=>{
-  if(chicks>0){
-    money+=chicks*10;
+  for(let i=0;i<chicks;i++){
+    money+=10;
     updateMoney();
-    for(let i=0;i<autoKaka;i++){spawnKaka(true);}
     if(Math.random()<0.1) spawnKaka();
   }
+  for(let j=0;j<autoKaka;j++) spawnKaka(true);
 },1000);
-
 </script>
 </body>
 </html>
