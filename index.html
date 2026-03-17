@@ -3,84 +3,156 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Butt Clicker</title>
+<title>Chicken Butt Clicker Ultra</title>
 <style>
   body {
+    margin: 0;
+    padding: 0;
     background: #fff8dc;
     font-family: 'Comic Sans MS', cursive, sans-serif;
     text-align: center;
-    padding: 30px;
+    overflow: hidden;
   }
 
-  h1 {
-    color: #ff4500;
+  h1, #money {
+    margin: 10px;
   }
 
   #money {
     font-size: 24px;
-    margin: 20px 0;
   }
 
-  .chicken-butt {
-    width: 150px;
-    margin: 20px;
-    cursor: pointer;
-    transition: transform 0.2s;
+  #butt-container {
     position: relative;
+    display: inline-block;
   }
 
-  .chicken-butt:hover {
-    transform: scale(1.2) rotate(10deg);
+  #butt {
+    width: 600px;
+    cursor: pointer;
+    display: block;
   }
 
   .kaka {
-    font-size: 50px;
     position: absolute;
-    animation: drop 1s linear forwards;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s, opacity 0.3s;
   }
 
-  @keyframes drop {
-    0% { transform: translateY(0px); opacity: 1; }
-    100% { transform: translateY(200px); opacity: 0; }
+  .explosion {
+    position: absolute;
+    font-size: 20px;
+    animation: explode 0.5s ease-out forwards;
+  }
+
+  @keyframes explode {
+    0% { transform: scale(1) translate(0,0); opacity: 1; }
+    100% { transform: scale(2) translate(50px,-50px); opacity: 0; }
+  }
+
+  #shop {
+    margin-top: 20px;
+  }
+
+  .shop-item {
+    margin: 10px;
+    padding: 5px 10px;
+    border: 2px solid #ff4500;
+    border-radius: 8px;
+    cursor: pointer;
+    display: inline-block;
   }
 </style>
 </head>
 <body>
-  <h1>🐔 Chicken Butt Clicker 🐔</h1>
-  <p>Klicke auf den Hühnerhintern und verdiene Geld! Aber Vorsicht… es könnte 💩 machen 😆</p>
-  <div id="money">💰 Geld: 0</div>
+<h1>🐔 Chicken Butt Clicker Ultra 🐔</h1>
+<div id="money">💰 Geld: 0</div>
 
-  <img src="cb-page-c.png" class="chicken-butt" id="butt" alt="Chicken Butt">
+<div id="butt-container">
+  <img src="cb-page-c.png" id="butt" alt="Chicken Butt">
+</div>
 
-  <script>
-    let money = 0;
-    const butt = document.getElementById('butt');
-    const moneyDisplay = document.getElementById('money');
+<div id="shop">
+  <div class="shop-item" id="buy-chick">🐣 Küken kaufen (10💰/s)</div>
+</div>
 
-    butt.addEventListener('click', () => {
-      // 50% Chance für Kaka
-      const isKaka = Math.random() < 0.5;
+<script>
+let money = 0;
+let chicks = 0;
+const moneyDisplay = document.getElementById('money');
+const butt = document.getElementById('butt');
+const buttContainer = document.getElementById('butt-container');
+const buyChickBtn = document.getElementById('buy-chick');
 
-      if (isKaka) {
-        // Kaka-Emoji erstellen
-        const kaka = document.createElement('div');
-        kaka.className = 'kaka';
-        kaka.textContent = '💩';
-        
-        // zufällige horizontale Position innerhalb des Bildes
-        const offsetX = Math.random() * butt.width - 25;
-        kaka.style.left = `${butt.offsetLeft + offsetX}px`;
-        kaka.style.top = `${butt.offsetTop + butt.height}px`;
+function updateMoneyDisplay() {
+  moneyDisplay.textContent = `💰 Geld: ${Math.floor(money)}`;
+}
 
-        document.body.appendChild(kaka);
-        setTimeout(() => kaka.remove(), 1000);
-      }
+// Funktion zum Spawn von Kaka
+function spawnKaka() {
+  const kaka = document.createElement('div');
+  const size = Math.random() * 50 + 20; // Größe 20px–70px
+  kaka.style.fontSize = `${size}px`;
+  kaka.className = 'kaka';
+  kaka.textContent = '💩';
 
-      // Geld hinzufügen
-      const earned = isKaka ? 50 : 10; // Viel Geld bei Kaka
-      money += earned;
-      moneyDisplay.textContent = `💰 Geld: ${money}`;
-    });
-  </script>
+  const rect = butt.getBoundingClientRect();
+  const x = Math.random() * (rect.width - size);
+  const y = Math.random() * (rect.height - size);
+  kaka.style.left = `${x}px`;
+  kaka.style.top = `${y}px`;
+
+  buttContainer.appendChild(kaka);
+
+  // Klick auf Kaka: explodiert
+  kaka.addEventListener('click', () => {
+    const earned = Math.floor(size); // Größe = Geld
+    money += earned;
+    updateMoneyDisplay();
+
+    // Explosion-Animation
+    const explosion = document.createElement('div');
+    explosion.className = 'explosion';
+    explosion.style.left = kaka.style.left;
+    explosion.style.top = kaka.style.top;
+    explosion.textContent = '💥';
+    buttContainer.appendChild(explosion);
+
+    setTimeout(() => explosion.remove(), 500);
+    kaka.remove();
+  });
+
+  // Automatisches Entfernen nach 5 Sekunden, falls nicht geklickt
+  setTimeout(() => kaka.remove(), 5000);
+}
+
+// Klick auf den Hühnerhintern
+butt.addEventListener('click', () => {
+  if (Math.random() < 0.5) spawnKaka(); // 50% Chance für Kaka
+  money += 10;
+  updateMoneyDisplay();
+});
+
+// Shop: Küken kaufen
+buyChickBtn.addEventListener('click', () => {
+  if (money >= 100) {
+    money -= 100;
+    chicks += 1;
+    updateMoneyDisplay();
+  }
+});
+
+// Küken erzeugen automatisch Geld und Kaka
+setInterval(() => {
+  if (chicks > 0) {
+    money += chicks * 10; // pro Küken 10 pro Sekunde
+    updateMoneyDisplay();
+
+    chicks && Math.random() < 0.1 && spawnKaka(); // 10% Chance Kaka von Küken
+  }
+}, 1000);
+
+</script>
 </body>
 </html>
