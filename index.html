@@ -28,7 +28,7 @@
   }
 
   #butt {
-    width: 600px;
+    width: 300px; /* kleineres Huhn */
     cursor: pointer;
     display: block;
   }
@@ -43,25 +43,36 @@
   .explosion {
     position: absolute;
     font-size: 20px;
+    opacity: 1;
+    pointer-events: none;
     animation: explode 0.5s ease-out forwards;
   }
 
   @keyframes explode {
     0% { transform: scale(1) translate(0,0); opacity: 1; }
-    100% { transform: scale(2) translate(50px,-50px); opacity: 0; }
+    100% { transform: scale(var(--explosion-scale)) translate(var(--explosion-x), var(--explosion-y)); opacity: 0; }
   }
 
-  #shop {
-    margin-top: 20px;
+  .chick {
+    position: absolute;
+    width: 40px;
+    animation: waddle 1s infinite alternate;
   }
 
-  .shop-item {
-    margin: 10px;
-    padding: 5px 10px;
+  @keyframes waddle {
+    0% { transform: translateX(0) rotate(-10deg); }
+    50% { transform: translateX(5px) rotate(10deg); }
+    100% { transform: translateX(0) rotate(-10deg); }
+  }
+
+  #shopButton {
+    margin: 15px;
+    padding: 8px 15px;
     border: 2px solid #ff4500;
     border-radius: 8px;
     cursor: pointer;
     display: inline-block;
+    background-color: #ffe4b5;
   }
 </style>
 </head>
@@ -73,26 +84,27 @@
   <img src="cb-page-c.png" id="butt" alt="Chicken Butt">
 </div>
 
-<div id="shop">
-  <div class="shop-item" id="buy-chick">🐣 Küken kaufen (10💰/s)</div>
-</div>
+<button id="shopButton">Shop Laden: Bob</button>
+
+<audio id="explodeSound" src="https://freesound.org/data/previews/170/170163_2437358-lq.mp3"></audio>
 
 <script>
 let money = 0;
 let chicks = 0;
+
 const moneyDisplay = document.getElementById('money');
 const butt = document.getElementById('butt');
 const buttContainer = document.getElementById('butt-container');
-const buyChickBtn = document.getElementById('buy-chick');
+const shopButton = document.getElementById('shopButton');
+const explodeSound = document.getElementById('explodeSound');
 
 function updateMoneyDisplay() {
   moneyDisplay.textContent = `💰 Geld: ${Math.floor(money)}`;
 }
 
-// Funktion zum Spawn von Kaka
 function spawnKaka() {
   const kaka = document.createElement('div');
-  const size = Math.random() * 50 + 20; // Größe 20px–70px
+  const size = Math.random() * 50 + 20; // 20–70px
   kaka.style.fontSize = `${size}px`;
   kaka.className = 'kaka';
   kaka.textContent = '💩';
@@ -105,51 +117,49 @@ function spawnKaka() {
 
   buttContainer.appendChild(kaka);
 
-  // Klick auf Kaka: explodiert
   kaka.addEventListener('click', () => {
     const earned = Math.floor(size); // Größe = Geld
     money += earned;
     updateMoneyDisplay();
 
-    // Explosion-Animation
+    // Explosion
     const explosion = document.createElement('div');
     explosion.className = 'explosion';
+    explosion.textContent = '💥';
     explosion.style.left = kaka.style.left;
     explosion.style.top = kaka.style.top;
-    explosion.textContent = '💥';
+    explosion.style.setProperty('--explosion-scale', 1.07); // 7% größer
+    explosion.style.setProperty('--explosion-x', `${Math.random()*50-25}px`);
+    explosion.style.setProperty('--explosion-y', `${Math.random()*-50}px`);
     buttContainer.appendChild(explosion);
+
+    explodeSound.currentTime = 0;
+    explodeSound.play();
 
     setTimeout(() => explosion.remove(), 500);
     kaka.remove();
   });
 
-  // Automatisches Entfernen nach 5 Sekunden, falls nicht geklickt
   setTimeout(() => kaka.remove(), 5000);
 }
 
-// Klick auf den Hühnerhintern
 butt.addEventListener('click', () => {
-  if (Math.random() < 0.5) spawnKaka(); // 50% Chance für Kaka
+  if (Math.random() < 0.5) spawnKaka();
   money += 10;
   updateMoneyDisplay();
 });
 
-// Shop: Küken kaufen
-buyChickBtn.addEventListener('click', () => {
-  if (money >= 100) {
-    money -= 100;
-    chicks += 1;
-    updateMoneyDisplay();
-  }
+// Shop Button (einfach alert für Demo)
+shopButton.addEventListener('click', () => {
+  alert("Willkommen bei Shop Laden Bob! Hier kannst du Küken und Upgrades kaufen.");
 });
 
-// Küken erzeugen automatisch Geld und Kaka
+// Küken
 setInterval(() => {
   if (chicks > 0) {
-    money += chicks * 10; // pro Küken 10 pro Sekunde
+    money += chicks * 10;
     updateMoneyDisplay();
-
-    chicks && Math.random() < 0.1 && spawnKaka(); // 10% Chance Kaka von Küken
+    if (Math.random() < 0.1) spawnKaka();
   }
 }, 1000);
 
