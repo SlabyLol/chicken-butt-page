@@ -5,75 +5,66 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Chicken Butt Clicker Ultra</title>
 <style>
-  body {
-    margin: 0;
-    padding: 0;
-    background: #fff8dc;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-    text-align: center;
-    overflow: hidden;
-  }
-
-  h1, #money {
-    margin: 10px;
-  }
-
-  #money {
-    font-size: 24px;
-  }
-
-  #butt-container {
-    position: relative;
-    display: inline-block;
-  }
-
-  #butt {
-    width: 300px; /* kleineres Huhn */
-    cursor: pointer;
-    display: block;
-  }
-
-  .kaka {
-    position: absolute;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.2s, opacity 0.3s;
-  }
-
-  .explosion {
-    position: absolute;
-    font-size: 20px;
-    opacity: 1;
-    pointer-events: none;
-    animation: explode 0.5s ease-out forwards;
-  }
-
-  @keyframes explode {
-    0% { transform: scale(1) translate(0,0); opacity: 1; }
-    100% { transform: scale(var(--explosion-scale)) translate(var(--explosion-x), var(--explosion-y)); opacity: 0; }
-  }
-
-  .chick {
-    position: absolute;
-    width: 40px;
-    animation: waddle 1s infinite alternate;
-  }
-
-  @keyframes waddle {
-    0% { transform: translateX(0) rotate(-10deg); }
-    50% { transform: translateX(5px) rotate(10deg); }
-    100% { transform: translateX(0) rotate(-10deg); }
-  }
-
-  #shopButton {
-    margin: 15px;
-    padding: 8px 15px;
-    border: 2px solid #ff4500;
-    border-radius: 8px;
-    cursor: pointer;
-    display: inline-block;
-    background-color: #ffe4b5;
-  }
+body {
+  margin:0; padding:0;
+  background:#fff8dc;
+  font-family:'Comic Sans MS', cursive, sans-serif;
+  text-align:center;
+  overflow:hidden;
+}
+h1,#money {margin:10px;}
+#money {font-size:24px;}
+#butt-container {position:relative; display:inline-block;}
+#butt {width:300px; cursor:pointer; display:block;}
+.kaka {
+  position:absolute;
+  cursor:pointer;
+  user-select:none;
+}
+.explosion {
+  position:absolute;
+  width:0;
+  height:0;
+  border-radius:50%;
+  background:orange;
+  opacity:0.8;
+  pointer-events:none;
+  animation:explode 0.5s ease-out forwards;
+}
+@keyframes explode {
+  0% {width:0; height:0; opacity:0.8;}
+  50% {width:20px; height:20px; opacity:1;}
+  100% {width: var(--exp-size); height: var(--exp-size); opacity:0;}
+}
+.chick {
+  position:absolute;
+  width:40px;
+  animation:waddle 1s infinite alternate;
+}
+@keyframes waddle {
+  0% {transform:translateX(0) rotate(-10deg);}
+  50% {transform:translateX(5px) rotate(10deg);}
+  100% {transform:translateX(0) rotate(-10deg);}
+}
+#shopButton {
+  margin:15px;
+  padding:8px 15px;
+  border:2px solid #ff4500;
+  border-radius:8px;
+  cursor:pointer;
+  display:inline-block;
+  background-color:#ffe4b5;
+}
+#shop {display:none; margin-top:20px;}
+.shop-item {
+  margin:10px;
+  padding:5px 10px;
+  border:2px solid #ff4500;
+  border-radius:8px;
+  cursor:pointer;
+  display:inline-block;
+  background:#ffd700;
+}
 </style>
 </head>
 <body>
@@ -86,82 +77,109 @@
 
 <button id="shopButton">Shop Laden: Bob</button>
 
+<div id="shop">
+  <div class="shop-item" id="buy-chick">🐣 Küken kaufen (100💰, 10/s)</div>
+  <div class="shop-item" id="gyat-boost">Gyat Boost (+2 Klick💰)</div>
+  <div class="shop-item" id="gyat-mult">Gyat Multiplier (x2 Kaka)</div>
+  <div class="shop-item" id="gyat-auto">Gyat Auto-Kaka (+1 Kaka/sec)</div>
+</div>
+
 <audio id="explodeSound" src="https://freesound.org/data/previews/170/170163_2437358-lq.mp3"></audio>
+<audio id="goldSound" src="https://freesound.org/data/previews/82/82528_1022651-lq.mp3"></audio>
 
 <script>
-let money = 0;
-let chicks = 0;
+let money=0, chicks=0, clickPower=10, kakaMultiplier=1, autoKaka=0;
+const moneyDisplay=document.getElementById('money');
+const butt=document.getElementById('butt');
+const buttContainer=document.getElementById('butt-container');
+const shopButton=document.getElementById('shopButton');
+const shop=document.getElementById('shop');
+const explodeSound=document.getElementById('explodeSound');
+const goldSound=document.getElementById('goldSound');
 
-const moneyDisplay = document.getElementById('money');
-const butt = document.getElementById('butt');
-const buttContainer = document.getElementById('butt-container');
-const shopButton = document.getElementById('shopButton');
-const explodeSound = document.getElementById('explodeSound');
+function updateMoney(){moneyDisplay.textContent=`💰 Geld: ${Math.floor(money)}`;}
 
-function updateMoneyDisplay() {
-  moneyDisplay.textContent = `💰 Geld: ${Math.floor(money)}`;
-}
-
-function spawnKaka() {
-  const kaka = document.createElement('div');
-  const size = Math.random() * 50 + 20; // 20–70px
-  kaka.style.fontSize = `${size}px`;
-  kaka.className = 'kaka';
-  kaka.textContent = '💩';
-
-  const rect = butt.getBoundingClientRect();
-  const x = Math.random() * (rect.width - size);
-  const y = Math.random() * (rect.height - size);
-  kaka.style.left = `${x}px`;
-  kaka.style.top = `${y}px`;
-
+function spawnKaka(auto=false){
+  const kaka=document.createElement('div');
+  const size=Math.random()*50+20;
+  kaka.style.fontSize=size+'px';
+  kaka.className='kaka';
+  kaka.textContent='💩';
+  const rect=butt.getBoundingClientRect();
+  const x=Math.random()*(rect.width-size);
+  const y=Math.random()*(rect.height-size);
+  kaka.style.left=x+'px';
+  kaka.style.top=y+'px';
   buttContainer.appendChild(kaka);
 
-  kaka.addEventListener('click', () => {
-    const earned = Math.floor(size); // Größe = Geld
-    money += earned;
-    updateMoneyDisplay();
-
-    // Explosion
-    const explosion = document.createElement('div');
-    explosion.className = 'explosion';
-    explosion.textContent = '💥';
-    explosion.style.left = kaka.style.left;
-    explosion.style.top = kaka.style.top;
-    explosion.style.setProperty('--explosion-scale', 1.07); // 7% größer
-    explosion.style.setProperty('--explosion-x', `${Math.random()*50-25}px`);
-    explosion.style.setProperty('--explosion-y', `${Math.random()*-50}px`);
-    buttContainer.appendChild(explosion);
-
-    explodeSound.currentTime = 0;
-    explodeSound.play();
-
-    setTimeout(() => explosion.remove(), 500);
-    kaka.remove();
+  kaka.addEventListener('click',()=>{
+    const earned=Math.floor(size*kakaMultiplier);
+    money+=earned;
+    updateMoney();
+    explodeKaka(kaka,size);
   });
 
-  setTimeout(() => kaka.remove(), 5000);
+  setTimeout(()=>{if(buttContainer.contains(kaka)) buttContainer.removeChild(kaka)},5000);
 }
 
-butt.addEventListener('click', () => {
-  if (Math.random() < 0.5) spawnKaka();
-  money += 10;
-  updateMoneyDisplay();
-});
+function explodeKaka(kaka,size){
+  const exp=document.createElement('div');
+  exp.className='explosion';
+  exp.style.left=kaka.style.left;
+  exp.style.top=kaka.style.top;
+  exp.style.setProperty('--exp-size',`${size*1.07}px`);
+  exp.style.setProperty('--explosion-x',`${Math.random()*50-25}px`);
+  exp.style.setProperty('--explosion-y',`${Math.random()*-50}px`);
+  buttContainer.appendChild(exp);
+  explodeSound.currentTime=0; explodeSound.play();
+  setTimeout(()=>exp.remove(),500);
+  kaka.remove();
+}
 
-// Shop Button (einfach alert für Demo)
-shopButton.addEventListener('click', () => {
-  alert("Willkommen bei Shop Laden Bob! Hier kannst du Küken und Upgrades kaufen.");
-});
-
-// Küken
-setInterval(() => {
-  if (chicks > 0) {
-    money += chicks * 10;
-    updateMoneyDisplay();
-    if (Math.random() < 0.1) spawnKaka();
+// Klick auf Huhn
+butt.addEventListener('click',()=>{
+  money+=clickPower;
+  updateMoney();
+  if(Math.random()<0.5) spawnKaka();
+  if(Math.random()<0.01){ // Goldener Dünnschiss
+    const waterfall=document.createElement('div');
+    waterfall.className='explosion';
+    waterfall.style.width='100px'; waterfall.style.height='300px';
+    waterfall.style.left='100px'; waterfall.style.top='0px';
+    waterfall.style.background='gold';
+    buttContainer.appendChild(waterfall);
+    goldSound.currentTime=0; goldSound.play();
+    money+=1000; updateMoney();
+    setTimeout(()=>waterfall.remove(),1000);
   }
-}, 1000);
+});
+
+// Shop toggle
+shopButton.addEventListener('click',()=>{shop.style.display=shop.style.display==='none'?'block':'none';});
+
+// Shop Items
+document.getElementById('buy-chick').addEventListener('click',()=>{
+  if(money>=100){money-=100;chicks++;updateMoney();}
+});
+document.getElementById('gyat-boost').addEventListener('click',()=>{
+  if(money>=50){money-=50;clickPower+=2;updateMoney();}
+});
+document.getElementById('gyat-mult').addEventListener('click',()=>{
+  if(money>=200){money-=200;kakaMultiplier*=2;updateMoney();}
+});
+document.getElementById('gyat-auto').addEventListener('click',()=>{
+  if(money>=150){money-=150;autoKaka++;updateMoney();}
+});
+
+// Küken automatisch Geld + Kaka
+setInterval(()=>{
+  if(chicks>0){
+    money+=chicks*10;
+    updateMoney();
+    for(let i=0;i<autoKaka;i++){spawnKaka(true);}
+    if(Math.random()<0.1) spawnKaka();
+  }
+},1000);
 
 </script>
 </body>
