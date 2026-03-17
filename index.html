@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chicken Butt Page</title>
+<style>
+  body {
+    background: #fff8dc;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    text-align: center;
+    padding: 50px;
+  }
+  h1 {
+    color: #ff4500;
+  }
+  .chicken-butt {
+    display: inline-block;
+    margin: 20px;
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .chicken-butt:hover {
+    transform: scale(1.2) rotate(10deg);
+  }
+</style>
+</head>
+<body>
+  <h1>🐔 Chicken Butt Clicker 🐔</h1>
+  <p>Click the chicken butts and see what happens!</p>
+
+  <img src="https://i.imgur.com/0O4vF1l.png" class="chicken-butt" id="butt1" width="150" alt="Chicken Butt">
+  <img src="https://i.imgur.com/0O4vF1l.png" class="chicken-butt" id="butt2" width="150" alt="Chicken Butt">
+
+  <script>
+    function randomExplosion(el) {
+      el.style.transform = `translate(${Math.random()*200-100}px, ${Math.random()*200-100}px) rotate(${Math.random()*360}deg) scale(${Math.random()*1.5+0.5})`;
+    }
+
+    document.querySelectorAll('.chicken-butt').forEach(el => {
+      el.addEventListener('click', () => {
+        randomExplosion(el);
+        alert('CHICKEN BUTT! 🐔');
+      });
+    });
+  </script>
+</body>
+</html>
