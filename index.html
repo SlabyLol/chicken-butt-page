@@ -1,47 +1,85 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="de">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chicken Butt Page</title>
+<title>Chicken Butt Clicker</title>
 <style>
   body {
     background: #fff8dc;
     font-family: 'Comic Sans MS', cursive, sans-serif;
     text-align: center;
-    padding: 50px;
+    padding: 30px;
   }
+
   h1 {
     color: #ff4500;
   }
+
+  #money {
+    font-size: 24px;
+    margin: 20px 0;
+  }
+
   .chicken-butt {
-    display: inline-block;
+    width: 150px;
     margin: 20px;
     cursor: pointer;
     transition: transform 0.2s;
+    position: relative;
   }
+
   .chicken-butt:hover {
     transform: scale(1.2) rotate(10deg);
+  }
+
+  .kaka {
+    font-size: 50px;
+    position: absolute;
+    animation: drop 1s linear forwards;
+  }
+
+  @keyframes drop {
+    0% { transform: translateY(0px); opacity: 1; }
+    100% { transform: translateY(200px); opacity: 0; }
   }
 </style>
 </head>
 <body>
   <h1>🐔 Chicken Butt Clicker 🐔</h1>
-  <p>Click the chicken butts and see what happens!</p>
+  <p>Klicke auf den Hühnerhintern und verdiene Geld! Aber Vorsicht… es könnte 💩 machen 😆</p>
+  <div id="money">💰 Geld: 0</div>
 
-  <img src="https://i.imgur.com/0O4vF1l.png" class="chicken-butt" id="butt1" width="150" alt="Chicken Butt">
-  <img src="https://i.imgur.com/0O4vF1l.png" class="chicken-butt" id="butt2" width="150" alt="Chicken Butt">
+  <img src="cb-page-c.png" class="chicken-butt" id="butt" alt="Chicken Butt">
 
   <script>
-    function randomExplosion(el) {
-      el.style.transform = `translate(${Math.random()*200-100}px, ${Math.random()*200-100}px) rotate(${Math.random()*360}deg) scale(${Math.random()*1.5+0.5})`;
-    }
+    let money = 0;
+    const butt = document.getElementById('butt');
+    const moneyDisplay = document.getElementById('money');
 
-    document.querySelectorAll('.chicken-butt').forEach(el => {
-      el.addEventListener('click', () => {
-        randomExplosion(el);
-        alert('CHICKEN BUTT! 🐔');
-      });
+    butt.addEventListener('click', () => {
+      // 50% Chance für Kaka
+      const isKaka = Math.random() < 0.5;
+
+      if (isKaka) {
+        // Kaka-Emoji erstellen
+        const kaka = document.createElement('div');
+        kaka.className = 'kaka';
+        kaka.textContent = '💩';
+        
+        // zufällige horizontale Position innerhalb des Bildes
+        const offsetX = Math.random() * butt.width - 25;
+        kaka.style.left = `${butt.offsetLeft + offsetX}px`;
+        kaka.style.top = `${butt.offsetTop + butt.height}px`;
+
+        document.body.appendChild(kaka);
+        setTimeout(() => kaka.remove(), 1000);
+      }
+
+      // Geld hinzufügen
+      const earned = isKaka ? 50 : 10; // Viel Geld bei Kaka
+      money += earned;
+      moneyDisplay.textContent = `💰 Geld: ${money}`;
     });
   </script>
 </body>
